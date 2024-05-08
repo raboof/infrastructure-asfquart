@@ -59,7 +59,7 @@ class LDAPClient:
             return LDAP_CACHE[self.userid][1]
 
         except bonsai.errors.AuthenticationError as e:
-            raise base.ASFQuartException("Invalid credentials provided", errorcode=403)
+            raise base.ASFQuartException(f"Invalid credentials provided: {e}", errorcode=403)
         except Exception as e:
             print(f"Base exception during LDAP lookup: {e}")
             raise base.ASFQuartException(

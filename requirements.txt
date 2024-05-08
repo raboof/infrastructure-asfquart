@@ -8,5 +8,4 @@ aiohttp>=3.9.1
 hypercorn
 build
 twine
-# Cannot build wheel for bonsai
-# asfpy[aioldap]
+asfpy[aioldap]

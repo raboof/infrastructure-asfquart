@@ -51,49 +51,49 @@ def setup_oauth(app, uri=DEFAULT_OAUTH_URI, workflow_timeout: int = 900):
             return quart.redirect(redirect_url)
 
         # Log out
-        elif logout_uri or quart.request.query_string == b"logout":
+        if logout_uri or quart.request.query_string == b"logout":
             asfquart.session.clear()
             if logout_uri:  # if called with /auth=logout=/foo, redirect to /foo
                 return quart.redirect(logout_uri)
             return quart.Response(
                 status=200,
-                response=f"Client session removed, goodbye!\n",
+                response="Client session removed, goodbye!\n",
             )
-        else:
-            code = quart.request.args.get("code")
-            state = quart.request.args.get("state")
-            if code and state:  # Callback from oauth, complete flow.
-                if state not in pending_states or pending_states[state][0] < (time.time() - workflow_timeout):
-                    pending_states.pop(state, None)  # safe pop
-                    return quart.Response(
-                        status=403,
-                        response=f"Invalid or expired OAuth state provided. OAuth workflows must be completed within {workflow_timeout} seconds.\n",
-                    )
-                redirect_uri = pending_states[state][1]
-                pending_states.pop(
-                    state
-                )  # Pop the state from pending. We do this straight away to avoid timing attacks
-                ct = aiohttp.client.ClientTimeout(sock_read=15)
-                async with aiohttp.client.ClientSession(timeout=ct) as session:
-                    rv = await session.get(OAUTH_URL_CALLBACK % code)
-                    assert rv.status == 200, "Could not verify oauth response."
-                    oauth_data = await rv.json()
-                    asfquart.session.write(oauth_data)
-                if redirect_uri:  # if called with /auth=login=/foo, redirect to /foo
-                    return quart.redirect(redirect_uri)
-                # Otherwise, just say hi
+
+        code = quart.request.args.get("code")
+        state = quart.request.args.get("state")
+        if code and state:  # Callback from oauth, complete flow.
+            if state not in pending_states or pending_states[state][0] < (time.time() - workflow_timeout):
+                pending_states.pop(state, None)  # safe pop
                 return quart.Response(
-                    status=200,
-                    response=f"Successfully logged in! Welcome, {oauth_data['uid']}\n",
+                    status=403,
+                    response=f"Invalid or expired OAuth state provided. OAuth workflows must be completed within {workflow_timeout} seconds.\n",
                 )
-            else:  # Just spit out existing session if it's there
-                client_session = await asfquart.session.read()
-                if isinstance(client_session, asfquart.session.ClientSession):
-                    return client_session
-                return quart.Response(
-                    status=404,
-                    response=f"No active session found.\n",
-                )
+            redirect_uri = pending_states[state][1]
+            pending_states.pop(
+                state
+            )  # Pop the state from pending. We do this straight away to avoid timing attacks
+            ct = aiohttp.client.ClientTimeout(sock_read=15)
+            async with aiohttp.client.ClientSession(timeout=ct) as session:
+                rv = await session.get(OAUTH_URL_CALLBACK % code)
+                assert rv.status == 200, "Could not verify oauth response."
+                oauth_data = await rv.json()
+                asfquart.session.write(oauth_data)
+            if redirect_uri:  # if called with /auth=login=/foo, redirect to /foo
+                return quart.redirect(redirect_uri)
+            # Otherwise, just say hi
+            return quart.Response(
+                status=200,
+                response=f"Successfully logged in! Welcome, {oauth_data['uid']}\n",
+            )
+        # Just spit out existing session if it's there
+        client_session = await asfquart.session.read()
+        if isinstance(client_session, asfquart.session.ClientSession):
+            return client_session
+        return quart.Response(
+            status=404,
+            response="No active session found.\n",
+        )
 
 
 def enforce_login(app, redirect_uri=DEFAULT_OAUTH_URI):
@@ -101,7 +101,6 @@ def enforce_login(app, redirect_uri=DEFAULT_OAUTH_URI):
     without being logged in. Only redirects if there is no active user session. On success, the client
     is redirected back to the origin page that was restricted. If it is still restricted, the client
     will instead see an error message."""
-    import asfquart.auth
 
     @app.errorhandler(asfquart.auth.AuthenticationFailed)
     async def auth_redirect(error):

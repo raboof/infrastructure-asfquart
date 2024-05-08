@@ -87,14 +87,16 @@ disable=raw-checker-failed,
         deprecated-pragma,
         use-symbolic-message-instead,
         attribute-defined-outside-init,
-        wrong-import-position,wrong-import-order,
+        wrong-import-position,wrong-import-order,import-error,
         import-outside-toplevel,
         invalid-name,
         too-few-public-methods,
         too-many-instance-attributes,
+        too-many-return-statements
         use-dict-literal,
         missing-function-docstring,missing-module-docstring,missing-class-docstring, # Enable later?
         line-too-long, # enable later?
+        fixme, # enable later
 
 # Enable the message, report, category or checker with the given id(s). You can
 # either give multiple identifier separated by comma (,) or put this option

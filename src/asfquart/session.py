@@ -58,30 +58,30 @@ async def read(expiry_time=86400*7, app=None) -> typing.Optional[ClientSession]:
     # asks the werkzeug LocalProxy wrapper whether a request exists or not, and bails if not.
     elif bool(quart.request) and 'Authorization' in quart.request.headers and quart.request.authorization:
         match quart.request.authorization.type:
-                case "bearer":  # Role accounts, PATs - TBD
-                    print(f"Debug: Do auth check for role with token {quart.request.authorization.token} here...")
-                case "basic":  # Basic LDAP auth - will need to grab info from LDAP
-                    if ldap.LDAP_SUPPORTED:
-                        try:
-                            auth_user = quart.request.authorization.parameters["username"]
-                            auth_pwd = quart.request.authorization.parameters["password"]
-                            assert auth_user # Satisfy mypy
-                            assert auth_pwd
-                            ldap_client = ldap.LDAPClient(auth_user, auth_pwd)
-                            ldap_affiliations = await ldap_client.get_affiliations()
-                            # Convert to the usual session dict. TODO: add a single standardized parser/class for sessions
-                            session_dict = {
-                                "uid": auth_user,
-                                "pmcs": ldap_affiliations[ldap.DEFAULT_OWNER_ATTR],
-                                "projects": ldap_affiliations[ldap.DEFAULT_MEMBER_ATTR],
-                            }
-                            return ClientSession(session_dict)
-                        except (binascii.Error, ValueError, KeyError) as e:
-                            # binascii/ValueError == bad base64 auth string
-                            # KeyError = missing username or password
-                            raise base.ASFQuartException("Invalid Authorization header provided", errorcode=400)
-                case _:
-                    raise base.ASFQuartException("Not implemented yet", errorcode=501)
+            case "bearer":  # Role accounts, PATs - TBD
+                print(f"Debug: Do auth check for role with token {quart.request.authorization.token} here...")
+            case "basic":  # Basic LDAP auth - will need to grab info from LDAP
+                if ldap.LDAP_SUPPORTED:
+                    try:
+                        auth_user = quart.request.authorization.parameters["username"]
+                        auth_pwd = quart.request.authorization.parameters["password"]
+                        assert auth_user # Satisfy mypy
+                        assert auth_pwd
+                        ldap_client = ldap.LDAPClient(auth_user, auth_pwd)
+                        ldap_affiliations = await ldap_client.get_affiliations()
+                        # Convert to the usual session dict. TODO: add a single standardized parser/class for sessions
+                        session_dict = {
+                            "uid": auth_user,
+                            "pmcs": ldap_affiliations[ldap.DEFAULT_OWNER_ATTR],
+                            "projects": ldap_affiliations[ldap.DEFAULT_MEMBER_ATTR],
+                        }
+                        return ClientSession(session_dict)
+                    except (binascii.Error, ValueError, KeyError) as e:
+                        # binascii/ValueError == bad base64 auth string
+                        # KeyError = missing username or password
+                        raise base.ASFQuartException(f"Invalid Authorization header provided: {e}", errorcode=400)
+            case _:
+                raise base.ASFQuartException("Not implemented yet", errorcode=501)
 
     return None
 

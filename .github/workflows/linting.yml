@@ -23,6 +23,7 @@ jobs:
         python-version: ${{ matrix.python-version }}
     - name: Install dependencies
       run: |
+        sudo apt -y install python3-dev libldap2-dev libsasl2-dev # for bonsai
         python -m pip install --upgrade pip
         pip install pylint
         pip install -r requirements.txt

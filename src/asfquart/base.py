@@ -25,7 +25,6 @@ import pathlib
 import secrets
 import os
 import logging
-import functools
 import signal
 
 import asfpy.twatcher
@@ -58,13 +57,13 @@ class QuartApp(quart.Quart):
 
         # Locate the app dir as best we can. This is used for app ID
         # and token filepath generation
-        # TODO: hypercorn does not have a __file__ variable available, 
+        # TODO: hypercorn does not have a __file__ variable available,
         # so we are forced to fall back to CWD. Maybe have an optional arg
         # for setting the app dir?
         if hasattr(__main__, "__file__"):
-          self.app_dir = pathlib.Path(__main__.__file__).parent
+            self.app_dir = pathlib.Path(__main__.__file__).parent
         else:  # No __file__, probably hypercorn, fall back to cwd for now
-          self.app_dir = pathlib.Path(os.getcwd())
+            self.app_dir = pathlib.Path(os.getcwd())
         self.app_id = app_id
 
         # Most apps will require a watcher for their EZT templates.
@@ -97,7 +96,7 @@ class QuartApp(quart.Quart):
                 sys.stderr.write(
                     f"WARNING: Secrets file {_token_filename} has file mode {oct(file_mode)}, we were expecting {oct(SECRETS_FILE_MODE)}\n"
                 )
-            self.secret_key = open(_token_filename).read()
+            self.secret_key = open(_token_filename, encoding='utf-8').read()
         else:  # No token file yet, try to write, warn if we cannot
             self.secret_key = secrets.token_hex()
             ### TBD: throw the PermissionError once we stabilize how to locate
@@ -109,15 +108,15 @@ class QuartApp(quart.Quart):
                 fd = os.open(
                     path=_token_filename, flags=(os.O_WRONLY | os.O_CREAT | os.O_TRUNC), mode=SECRETS_FILE_MODE
                 )
-                open(fd, "w").write(self.secret_key)
+                open(fd, "w", encoding='utf-8').write(self.secret_key)
             except PermissionError:
-                LOGGER.error(f"Could not open {_token_filename} for writing. Session permanence cannot be guaranteed!")
+                LOGGER.error("Could not open %s for writing. Session permanence cannot be guaranteed!", _token_filename)
 
     def runx(self, /,
              host="0.0.0.0", port=None,
              debug=True, loop=None,
-             extra_files=set(),
-             **kw):
+             extra_files=None,
+             **_kw):
         """Extended version of Quart.run()
 
         LOOP is the loop this app should run within. One will be constructed,
@@ -129,6 +128,9 @@ class QuartApp(quart.Quart):
 
         # Default PORT is None, but it must be explicitly specified.
         assert port, "The port must be specified."
+
+        if extra_files is None: # mutable default arguments are unsafe, because they are instantiated once only
+            extra_files=set()
 
         # NOTE: much of the code below is direct from quart/app.py:Quart.run()
         # This local "copy" is to deal with the custom watcher/reloader.
@@ -154,9 +156,9 @@ class QuartApp(quart.Quart):
         ### LOG/print some info about the app starting?
         print(f' * Serving Quart app "{self.app_id}"')
         print(f" * Debug mode: {self.debug}")
-        print(f" * Using reloader: CUSTOM")
+        print(" * Using reloader: CUSTOM")
         print(f" * Running on http://{host}:{port}")
-        print(f" * ... CTRL + C to quit")
+        print(" * ... CTRL + C to quit")
 
         # Ready! Start running the app.
         self.run_forever(loop, task)
@@ -235,7 +237,7 @@ class QuartApp(quart.Quart):
 
         with inotify:
             async for event in inotify:
-                LOGGER.info(f"File changed: {event.path}")
+                LOGGER.info("File changed: %s", event.path)
                 raise hypercorn.utils.MustReloadError
         # NOTREACHED
 
@@ -256,7 +258,7 @@ class QuartApp(quart.Quart):
         # Use str() to avoid passing Path instances.
         return self.tw.load_template(str(self.app_dir / tpath), base_format=base_format)
 
-    def use_template(self, path_or_T, base_format=ezt.FORMAT_HTML):
+    def use_template(self, path_or_T, _base_format=ezt.FORMAT_HTML):
         # Decorator to use a template, specified by path or provided.
 
         if isinstance(path_or_T, ezt.Template):
