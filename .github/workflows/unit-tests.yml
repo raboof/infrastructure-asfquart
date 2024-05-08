@@ -4,6 +4,7 @@ on:
   push:
     paths-ignore:
       - '**/workflows/linting.yml'
+      - 'requirements.txt'
   workflow_dispatch:
 
 jobs:
