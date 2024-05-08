@@ -115,7 +115,7 @@ class QuartApp(quart.Quart):
     def runx(self, /,
              host="0.0.0.0", port=None,
              debug=True, loop=None,
-             extra_files=None,
+             extra_files=frozenset(), # OK, because immutable
              **_kw):
         """Extended version of Quart.run()
 
@@ -128,9 +128,6 @@ class QuartApp(quart.Quart):
 
         # Default PORT is None, but it must be explicitly specified.
         assert port, "The port must be specified."
-
-        if extra_files is None: # mutable default arguments are unsafe, because they are instantiated once only
-            extra_files=set()
 
         # NOTE: much of the code below is direct from quart/app.py:Quart.run()
         # This local "copy" is to deal with the custom watcher/reloader.
@@ -262,13 +259,13 @@ class QuartApp(quart.Quart):
         # Use str() to avoid passing Path instances.
         return self.tw.load_template(str(self.app_dir / tpath), base_format=base_format)
 
-    def use_template(self, path_or_T, _base_format=ezt.FORMAT_HTML):
+    def use_template(self, path_or_T, base_format=ezt.FORMAT_HTML):
         # Decorator to use a template, specified by path or provided.
 
         if isinstance(path_or_T, ezt.Template):
             return utils.use_template(path_or_T)
 
-        return utils.use_template(self.load_template(path_or_T))
+        return utils.use_template(self.load_template(path_or_T, base_format))
 
 
 def construct(name, *args, **kw):
