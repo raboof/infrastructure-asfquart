@@ -92,7 +92,7 @@ disable=raw-checker-failed,
         invalid-name,
         too-few-public-methods,
         too-many-instance-attributes,
-        too-many-return-statements
+        too-many-return-statements,
         use-dict-literal,
         missing-function-docstring,missing-module-docstring,missing-class-docstring, # Enable later?
         line-too-long, # enable later?
