@@ -93,7 +93,9 @@ disable=raw-checker-failed,
         too-few-public-methods,
         too-many-instance-attributes,
         too-many-return-statements,
+        too-many-arguments,
         use-dict-literal,
+        no-member, # enable later
         missing-function-docstring,missing-module-docstring,missing-class-docstring, # Enable later?
         line-too-long, # enable later?
         fixme, # enable later
