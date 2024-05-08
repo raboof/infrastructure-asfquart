@@ -56,7 +56,7 @@ async def read(expiry_time=86400*7, app=None) -> typing.Optional[ClientSession]:
     # Check for session providers in Auth header. These sessions are created ad-hoc, and do not linger in the
     # quart session DB. Since quart.request is not defined inside testing frameworks, the bool(request) test
     # asks the werkzeug LocalProxy wrapper whether a request exists or not, and bails if not.
-    elif bool(quart.request) and 'Authorization' in quart.request.headers:
+    elif bool(quart.request) and 'Authorization' in quart.request.headers and quart.request.authorization:
         match quart.request.authorization.type:
                 case "bearer":  # Role accounts, PATs - TBD
                     print(f"Debug: Do auth check for role with token {quart.request.authorization.token} here...")
@@ -80,6 +80,7 @@ async def read(expiry_time=86400*7, app=None) -> typing.Optional[ClientSession]:
                             raise base.ASFQuartException("Invalid Authorization header provided", errorcode=400)
                 case default:
                     raise base.ASFQuartException("Not implemented yet", errorcode=501)
+    return None
 
 
 def write(session_data: dict, app=None):
