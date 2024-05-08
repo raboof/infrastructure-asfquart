@@ -5,6 +5,7 @@ on:
     paths-ignore:
       - '**/workflows/linting.yml'
       - 'requirements.txt'
+      - 'pylintrc'
   workflow_dispatch:
 
 jobs:
