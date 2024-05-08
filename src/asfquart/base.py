@@ -248,7 +248,7 @@ class QuartApp(quart.Quart):
             loop.run_until_complete(task)
         finally:
             try:
-                quart.app._cancel_all_tasks(loop)
+                quart.app._cancel_all_tasks(loop) # pylint: disable=protected-access
                 loop.run_until_complete(loop.shutdown_asyncgens())
             finally:
                 asyncio.set_event_loop(None)
@@ -284,7 +284,7 @@ def construct(name, *args, **kw):
     @app.errorhandler(ASFQuartException)  # ASFQuart exception handler
     async def handle_exception(error):
         # If an error is thrown before the request body has been consumed, eat it quietly.
-        if not quart.request.body._complete.is_set():
+        if not quart.request.body._complete.is_set():  # pylint: disable=protected-access
             async for _data in quart.request.body:
                 pass
         return quart.Response(status=error.errorcode, response=error.message)
