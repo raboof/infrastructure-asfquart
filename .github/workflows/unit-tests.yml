@@ -2,6 +2,8 @@ name: Unit Tests
 
 on:
   push:
+    paths-ignore:
+      - '**/workflows/linting.yml'
   workflow_dispatch:
 
 jobs:
