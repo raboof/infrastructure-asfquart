@@ -65,6 +65,8 @@ async def read(expiry_time=86400*7, app=None) -> typing.Optional[ClientSession]:
                         try:
                             auth_user = quart.request.authorization.parameters["username"]
                             auth_pwd = quart.request.authorization.parameters["password"]
+                            assert auth_user # Satisfy mypy
+                            assert auth_pwd
                             ldap_client = ldap.LDAPClient(auth_user, auth_pwd)
                             ldap_affiliations = await ldap_client.get_affiliations()
                             # Convert to the usual session dict. TODO: add a single standardized parser/class for sessions
@@ -80,7 +82,7 @@ async def read(expiry_time=86400*7, app=None) -> typing.Optional[ClientSession]:
                             raise base.ASFQuartException("Invalid Authorization header provided", errorcode=400)
                 case default:
                     raise base.ASFQuartException("Not implemented yet", errorcode=501)
-    return None
+    raise base.ASFQuartException("Not implemented yet", errorcode=501)
 
 
 def write(session_data: dict, app=None):
