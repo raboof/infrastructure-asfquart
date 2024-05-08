@@ -119,7 +119,7 @@ class CancellableTask:
             try:
                 await coro
             except asyncio.CancelledError:
-                LOGGER.debug('TASK CANCELLED: %s', {self.task})
+                LOGGER.debug('TASK CANCELLED: %s', self.task)
 
         self.task = loop.create_task(absorb_cancel(), name=name)
 
