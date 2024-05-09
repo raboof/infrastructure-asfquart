@@ -68,19 +68,7 @@ class QuartApp(quart.Quart):
 
         # Most apps will require a watcher for their EZT templates.
         self.tw = asfpy.twatcher.TemplateWatcher()
-
-        # Start a task to watch the templates, and hold onto it for
-        # later cancellation at shutdown time.
-        @self.while_serving
-        async def perform_watching():
-            ctask = utils.CancellableTask(self.tw.watch_forever(), name=f"TW:{app_id}")
-            #print('TW STARTED:', ctask.task)
-            self.background_tasks.add(ctask.task)
-
-            yield  # back to serving
-
-            #print('TW STOPPING:', ctask.task)
-            ctask.cancel()
+        self.add_runner(self.tw.watch_forever, name=f"TW:{app_id}")
 
         # Read, or set and write, the application secret token for
         # session encryption. We prefer permanence for the session
@@ -96,7 +84,8 @@ class QuartApp(quart.Quart):
                 sys.stderr.write(
                     f"WARNING: Secrets file {_token_filename} has file mode {oct(file_mode)}, we were expecting {oct(SECRETS_FILE_MODE)}\n"
                 )
-            self.secret_key = open(_token_filename, encoding='utf-8').read()
+            with open(_token_filename, encoding='utf-8') as r:
+                self.secret_key = r.read()
         else:  # No token file yet, try to write, warn if we cannot
             self.secret_key = secrets.token_hex()
             ### TBD: throw the PermissionError once we stabilize how to locate
@@ -108,7 +97,8 @@ class QuartApp(quart.Quart):
                 fd = os.open(
                     path=_token_filename, flags=(os.O_WRONLY | os.O_CREAT | os.O_TRUNC), mode=SECRETS_FILE_MODE
                 )
-                open(fd, "w", encoding='utf-8').write(self.secret_key)
+                with open(fd, "w", encoding='utf-8') as w:
+                    w.write(self.secret_key)
             except PermissionError:
                 LOGGER.error("Could not open %s for writing. Session permanence cannot be guaranteed!", _token_filename)
 
@@ -266,6 +256,20 @@ class QuartApp(quart.Quart):
             return utils.use_template(path_or_T)
 
         return utils.use_template(self.load_template(path_or_T, base_format))
+
+    def add_runner(self, func, name=None):
+        "Add a long-running task, with cancellation/cleanup."
+
+        @self.while_serving
+        async def perform_runner():
+            ctask = utils.CancellableTask(func(), name=name)
+            #print('RUNNER STARTED:', ctask.task)
+            self.background_tasks.add(ctask.task)
+
+            yield  # back to serving
+
+            #print('RUNNER STOPPING:', ctask.task)
+            ctask.cancel()
 
 
 def construct(name, *args, **kw):
