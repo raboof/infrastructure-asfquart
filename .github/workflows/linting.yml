@@ -38,4 +38,4 @@ jobs:
     - name: Testing with pylint
       if: always()
       run: |
-          pylint pylint src test examples # recursive seems to include lots of other stuff
+          pylint --recursive y .
