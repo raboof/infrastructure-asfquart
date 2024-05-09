@@ -38,4 +38,4 @@ jobs:
     - name: Testing with pylint
       if: always()
       run: |
-          pylint pylint --recursive y .
+          pylint pylint --recursive y src test examples # . seems to include lots of other stuff under GHA
