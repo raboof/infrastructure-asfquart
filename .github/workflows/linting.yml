@@ -34,8 +34,8 @@ jobs:
     - name: Type testing with mypy
       run: |
           mypy --cache-dir /tmp/ --install-types
-          mypy --cache-dir /tmp/ --ignore-missing-imports src/asfquart/*.py tests/*.py 
+          mypy --cache-dir /tmp/ --ignore-missing-imports . # recursive by default
     - name: Testing with pylint
       if: always()
       run: |
-          pylint  src/asfquart/*.py tests/*.py
+          pylint pylint --recursive y .
