@@ -96,6 +96,7 @@ disable=raw-checker-failed,
         too-many-arguments,
         use-dict-literal,
         no-member, # enable later
+        cyclic-import, # enable later
         missing-function-docstring,missing-module-docstring,missing-class-docstring, # Enable later?
         line-too-long, # enable later?
         fixme, # enable later

@@ -90,7 +90,7 @@ def require(
           # Require either ASF member OR project chair, but also require MFA enabled in any case.
     """
 
-    async def require_wrapper(func: typing.Callable, all_of=None, any_of=None, *args, **kwargs):
+    async def require_wrapper(func: typing.Callable, all_of=None, any_of=None, *args, **kwargs): # pylint: disable=keyword-arg-before-vararg
         client_session = await session.read()
         errors_list = []
         # First off, test if we have a session at all.
