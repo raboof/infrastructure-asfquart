@@ -46,7 +46,7 @@ class LDAPClient:
                 async with self.client.connect() as conn:
                     rv = await conn.search(all_projects, attrs)
                     if not rv:
-                        raise Exception("Empty result set returned by LDAP") # pylint: disable=broad-exception-raised
+                        raise Exception("Empty result set returned by LDAP")  # pylint: disable=broad-exception-raised
                     for project in rv:
                         if "dn" in project and any(xattr in project for xattr in attrs):
                             dn_match = GROUP_RE.match(str(project["dn"]))

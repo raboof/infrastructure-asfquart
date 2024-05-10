@@ -106,7 +106,7 @@ class QuartApp(quart.Quart):
              host="0.0.0.0", port=None,
              debug=True, loop=None,
              extra_files=frozenset(), # OK, because immutable
-             **_kw):
+             ):
         """Extended version of Quart.run()
 
         LOOP is the loop this app should run within. One will be constructed,
