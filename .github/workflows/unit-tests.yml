@@ -6,6 +6,7 @@ on:
       - '**/workflows/linting.yml'
       - 'requirements.txt'
       - 'pylintrc'
+      - 'pylint_google'
   workflow_dispatch:
 
 jobs:

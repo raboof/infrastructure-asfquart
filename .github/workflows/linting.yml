@@ -39,3 +39,7 @@ jobs:
       if: always()
       run: |
           pylint --recursive y .
+    - name: Testing with pylint (google settings)
+      if: always()
+      run: |
+          pylint --rcfile pylint_google --recursive y .
