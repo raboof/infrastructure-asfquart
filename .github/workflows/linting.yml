@@ -42,4 +42,4 @@ jobs:
     - name: Testing with pylint (google settings)
       if: always()
       run: |
-          pylint --rcfile pylint_google --recursive y .
+          pylint --rcfile pylint_google --recursive y .  -d line-too-long --indent-string='    '
