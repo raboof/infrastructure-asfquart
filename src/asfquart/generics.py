@@ -28,6 +28,7 @@ OAUTH_ENFORCE_HTTPS = True
 OAUTH_CLIENT_ID = None
 OAUTH_CLIENT_SECRET = None
 OAUTH_URL_JWKS = None
+OAUTH_URL_LOGOUT = None
 OAUTH_ISSUER = None
 
 DEFAULT_OAUTH_URI = "/auth"
@@ -130,7 +131,11 @@ def setup_oauth(app, uri=DEFAULT_OAUTH_URI, workflow_timeout: int = 900):
         # Log out
         elif logout_uri or quart.request.query_string == b"logout":
             await asfquart.session.aclear()
-            if logout_uri and ((not logout_uri.startswith("/")) or logout_uri.startswith("//")):
+            if OAUTH_URL_LOGOUT:
+                # authentik doesn't support a post_logout_redirect_uri
+                # or similar yet AFAICT
+                response = quart.redirect(OAUTH_URL_LOGOUT)
+            elif logout_uri and ((not logout_uri.startswith("/")) or logout_uri.startswith("//")):
                 response = quart.Response(
                     status=400,
                     response="Invalid redirect URI.\n",
@@ -205,7 +210,7 @@ def setup_oauth(app, uri=DEFAULT_OAUTH_URI, workflow_timeout: int = 900):
                         oauth_data = await rv.json()
 
                     await asfquart.session.awrite(oauth_data)
- 
+
                 name = oauth_data['nickname'] if OAUTH_CLIENT_SECRET else oauth_data['uid']
                 if post_login_redirect_uri:  # if called with /auth=login=/foo, redirect to /foo
                     # If SameSite is set, we cannot redirect with a 30x response, as that may invalidate the set-cookie
