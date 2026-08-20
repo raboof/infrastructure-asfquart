@@ -51,6 +51,7 @@ def _fetcher():
     global fetcher
     if not fetcher:
         fetcher = AsyncKeyFetcher(valid_issuers=[OAUTH_ISSUER])
+        #??jwks_client = PyJWKClient(OAUTH_URL_JWKS)
     return fetcher
 
 def setup_oauth(app, uri=DEFAULT_OAUTH_URI, workflow_timeout: int = 900):
@@ -196,9 +197,11 @@ def setup_oauth(app, uri=DEFAULT_OAUTH_URI, workflow_timeout: int = 900):
 
                     if OAUTH_CLIENT_SECRET:
                         token = await rv.json()
-                        jwks_client = PyJWKClient(OAUTH_URL_JWKS)
                         id_token = token["id_token"]
+                        print(id_token)
+                        # TODO should we validate id_token[""] here?
                         key_entry = await _fetcher().get_key(id_token)
+                        print(key_entry)
                         # TODO perhaps we'd like to validate
                         # `key_entry.algorithms` is not too wide here
                         oauth_data = jwt.decode(
@@ -209,6 +212,7 @@ def setup_oauth(app, uri=DEFAULT_OAUTH_URI, workflow_timeout: int = 900):
                     else:
                         oauth_data = await rv.json()
 
+                    print(oauth_data)
                     await asfquart.session.awrite(oauth_data)
 
                 name = oauth_data['nickname'] if OAUTH_CLIENT_SECRET else oauth_data['uid']
